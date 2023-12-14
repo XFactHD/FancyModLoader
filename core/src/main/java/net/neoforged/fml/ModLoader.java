@@ -20,6 +20,7 @@ import net.neoforged.fml.loading.moddiscovery.ModInfo;
 import net.neoforged.fml.loading.progress.ProgressMeter;
 import net.neoforged.fml.loading.progress.StartupNotificationManager;
 import net.neoforged.neoforgespi.language.IModInfo;
+import net.neoforged.neoforgespi.language.IModFileInfo;
 import net.neoforged.neoforgespi.language.IModLanguageProvider;
 import net.neoforged.neoforgespi.locating.ForgeFeature;
 import net.neoforged.neoforgespi.locating.IModFile;
@@ -35,6 +36,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.neoforged.fml.Logging.CORE;
 import static net.neoforged.fml.Logging.LOADING;
@@ -111,6 +113,7 @@ public class ModLoader
         CrashReportCallables.registerCrashCallable("ModLauncher naming", FMLLoader::getNaming);
         CrashReportCallables.registerCrashCallable("ModLauncher services", this::computeModLauncherServiceList);
         CrashReportCallables.registerCrashCallable("FML Language Providers", this::computeLanguageList);
+        CrashReportCallables.registerCrashCallable("Mod List", this::printModList);
     }
 
     private String computeLanguageList() {
@@ -124,6 +127,27 @@ public class ModLoader
                 " "+mod.getOrDefault("type","NOTYPE")+
                 " "+mod.getOrDefault("description", "")).
                 collect(Collectors.joining("\n\t\t","\t\t",""));
+    }
+
+    private String printModList() {
+        Stream<IModFileInfo> fileInfos = loadingStateValid ? ModList.get().getModFiles().stream() : loadingModList.getModFiles().stream().map(IModFileInfo.class::cast);
+        Function<String, String> stateGetter = loadingStateValid ? ModLoader::getModContainerState : id -> "ERROR";
+        return fileInfos.map(IModFileInfo::getFile)
+                .map(mf -> fileToLine(mf, stateGetter))
+                .collect(Collectors.joining("\n\t\t", "\n\t\t", ""));
+    }
+
+    private static String getModContainerState(String modId) {
+        return ModList.get().getModContainerById(modId).map(ModContainer::getCurrentState).map(Object::toString).orElse("NONE");
+    }
+
+    private static String fileToLine(IModFile mf, Function<String, String> stateGetter) {
+        return String.format(Locale.ENGLISH, "%-50.50s|%-30.30s|%-30.30s|%-20.20s|%-10.10s|Manifest: %s", mf.getFileName(),
+                mf.getModInfos().get(0).getDisplayName(),
+                mf.getModInfos().get(0).getModId(),
+                mf.getModInfos().get(0).getVersion(),
+                stateGetter.apply(mf.getModInfos().get(0).getModId()),
+                ((ModFileInfo)mf.getModFileInfo()).getCodeSigningFingerprint().orElse("NOSIGNATURE"));
     }
 
     public static ModLoader get()

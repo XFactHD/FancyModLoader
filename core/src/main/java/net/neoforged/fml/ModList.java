@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -66,23 +65,6 @@ public class ModList
         this.fileById = this.modFiles.stream().map(IModFileInfo::getMods).flatMap(Collection::stream).
                 map(ModInfo.class::cast).
                 collect(Collectors.toMap(ModInfo::getModId, ModInfo::getOwningFile));
-        CrashReportCallables.registerCrashCallable("Mod List", this::crashReport);
-    }
-
-    private String getModContainerState(String modId) {
-        return getModContainerById(modId).map(ModContainer::getCurrentState).map(Object::toString).orElse("NONE");
-    }
-
-    private String fileToLine(IModFile mf) {
-        return String.format(Locale.ENGLISH, "%-50.50s|%-30.30s|%-30.30s|%-20.20s|%-10.10s|Manifest: %s", mf.getFileName(),
-                mf.getModInfos().get(0).getDisplayName(),
-                mf.getModInfos().get(0).getModId(),
-                mf.getModInfos().get(0).getVersion(),
-                getModContainerState(mf.getModInfos().get(0).getModId()),
-                ((ModFileInfo)mf.getModFileInfo()).getCodeSigningFingerprint().orElse("NOSIGNATURE"));
-    }
-    private String crashReport() {
-        return "\n"+applyForEachModFile(this::fileToLine).collect(Collectors.joining("\n\t\t", "\t\t", ""));
     }
 
     public static ModList of(List<ModFile> modFiles, List<ModInfo> sortedList)
