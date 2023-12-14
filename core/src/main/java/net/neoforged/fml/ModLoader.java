@@ -36,7 +36,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static net.neoforged.fml.Logging.CORE;
 import static net.neoforged.fml.Logging.LOADING;
@@ -130,9 +129,10 @@ public class ModLoader
     }
 
     private String printModList() {
-        Stream<IModFileInfo> fileInfos = loadingStateValid ? ModList.get().getModFiles().stream() : loadingModList.getModFiles().stream().map(IModFileInfo.class::cast);
+        List<IModFileInfo> fileInfos = loadingStateValid ? ModList.get().getModFiles() : loadingModList.getAllModFiles();
         Function<String, String> stateGetter = loadingStateValid ? ModLoader::getModContainerState : id -> "ERROR";
-        return fileInfos.map(IModFileInfo::getFile)
+        return fileInfos.stream()
+                .map(IModFileInfo::getFile)
                 .map(mf -> fileToLine(mf, stateGetter))
                 .collect(Collectors.joining("\n\t\t", "\n\t\t", ""));
     }

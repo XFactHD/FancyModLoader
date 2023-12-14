@@ -11,7 +11,9 @@ import net.neoforged.fml.loading.moddiscovery.BackgroundScanHandler;
 import net.neoforged.fml.loading.moddiscovery.ModFile;
 import net.neoforged.fml.loading.moddiscovery.ModFileInfo;
 import net.neoforged.fml.loading.moddiscovery.ModInfo;
+import net.neoforged.neoforgespi.language.IModFileInfo;
 import net.neoforged.neoforgespi.locating.IModFile;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.net.URL;
 import java.nio.file.Files;
@@ -33,17 +35,21 @@ public class LoadingModList
 {
     private static LoadingModList INSTANCE;
     private final List<ModFileInfo> modFiles;
+    private final List<IModFileInfo> allModFiles;
     private final List<ModInfo> sortedList;
     private final Map<String, ModFileInfo> fileById;
     private final List<EarlyLoadingException> preLoadErrors;
     private List<IModFile> brokenFiles;
 
-    private LoadingModList(final List<ModFile> modFiles, final List<ModInfo> sortedList)
+    private LoadingModList(final List<ModFile> modFiles, final List<ModInfo> sortedList, List<ModFile> allModFiles)
     {
         this.modFiles = modFiles.stream()
                 .map(ModFile::getModFileInfo)
                 .map(ModFileInfo.class::cast)
                 .collect(Collectors.toList());
+        this.allModFiles = allModFiles.stream()
+                .map(ModFile::getModFileInfo)
+                .toList();
         this.sortedList = sortedList.stream()
                 .map(ModInfo.class::cast)
                 .collect(Collectors.toList());
@@ -55,9 +61,9 @@ public class LoadingModList
         this.preLoadErrors = new ArrayList<>();
     }
 
-    public static LoadingModList of(List<ModFile> modFiles, List<ModInfo> sortedList, final EarlyLoadingException earlyLoadingException)
+    public static LoadingModList of(List<ModFile> modFiles, List<ModInfo> sortedList, final EarlyLoadingException earlyLoadingException, List<ModFile> allModFiles)
     {
-        INSTANCE = new LoadingModList(modFiles, sortedList);
+        INSTANCE = new LoadingModList(modFiles, sortedList, allModFiles);
         if (earlyLoadingException != null)
         {
             INSTANCE.preLoadErrors.add(earlyLoadingException);
@@ -103,6 +109,12 @@ public class LoadingModList
     public List<ModFileInfo> getModFiles()
     {
         return modFiles;
+    }
+
+    @ApiStatus.Internal
+    public List<IModFileInfo> getAllModFiles()
+    {
+        return allModFiles;
     }
 
     public Path findResource(final String className)

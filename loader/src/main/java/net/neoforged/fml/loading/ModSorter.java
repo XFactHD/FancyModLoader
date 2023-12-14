@@ -50,13 +50,13 @@ public class ModSorter
             ms.buildUniqueList();
         } catch (EarlyLoadingException e) {
             // We cannot build any list with duped mods. We have to abort immediately and report it
-            return LoadingModList.of(ms.systemMods, ms.systemMods.stream().map(mf->(ModInfo)mf.getModInfos().get(0)).collect(toList()), e);
+            return LoadingModList.of(ms.systemMods, ms.systemMods.stream().map(mf->(ModInfo)mf.getModInfos().get(0)).collect(toList()), e, ms.modFiles);
         }
         // try and validate dependencies
         final List<EarlyLoadingException.ExceptionData> failedList = Stream.concat(ms.verifyDependencyVersions().stream(), errors.stream()).toList();
         // if we miss one or the other, we abort now
         if (!failedList.isEmpty()) {
-            return LoadingModList.of(ms.systemMods, ms.systemMods.stream().map(mf->(ModInfo)mf.getModInfos().get(0)).collect(toList()), new EarlyLoadingException("failure to validate mod list", null, failedList));
+            return LoadingModList.of(ms.systemMods, ms.systemMods.stream().map(mf->(ModInfo)mf.getModInfos().get(0)).collect(toList()), new EarlyLoadingException("failure to validate mod list", null, failedList), ms.modFiles);
         } else {
             // Otherwise, lets try and sort the modlist and proceed
             EarlyLoadingException earlyLoadingException = null;
@@ -65,7 +65,7 @@ public class ModSorter
             } catch (EarlyLoadingException e) {
                 earlyLoadingException = e;
             }
-            return LoadingModList.of(ms.modFiles, ms.sortedList, earlyLoadingException);
+            return LoadingModList.of(ms.modFiles, ms.sortedList, earlyLoadingException, ms.modFiles);
         }
     }
 
