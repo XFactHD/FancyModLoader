@@ -130,24 +130,27 @@ public class ModLoader
 
     private String printModList() {
         List<IModFileInfo> fileInfos = loadingStateValid ? ModList.get().getModFiles() : loadingModList.getAllModFiles();
-        Function<String, String> stateGetter = loadingStateValid ? ModLoader::getModContainerState : id -> "ERROR";
         return fileInfos.stream()
                 .map(IModFileInfo::getFile)
-                .map(mf -> fileToLine(mf, stateGetter))
+                .map(this::fileToLine)
                 .collect(Collectors.joining("\n\t\t", "\n\t\t", ""));
     }
 
-    private static String getModContainerState(String modId) {
-        return ModList.get().getModContainerById(modId).map(ModContainer::getCurrentState).map(Object::toString).orElse("NONE");
-    }
-
-    private static String fileToLine(IModFile mf, Function<String, String> stateGetter) {
-        return String.format(Locale.ENGLISH, "%-50.50s|%-30.30s|%-30.30s|%-20.20s|%-10.10s|Manifest: %s", mf.getFileName(),
-                mf.getModInfos().get(0).getDisplayName(),
-                mf.getModInfos().get(0).getModId(),
-                mf.getModInfos().get(0).getVersion(),
-                stateGetter.apply(mf.getModInfos().get(0).getModId()),
-                ((ModFileInfo)mf.getModFileInfo()).getCodeSigningFingerprint().orElse("NOSIGNATURE"));
+    private String fileToLine(IModFile mf) {
+        String displayName = "UNKNOWN";
+        String modId = "UNKNOWN";
+        String version = "NONE";
+        String state = "ERROR";
+        String signature = ((ModFileInfo) mf.getModFileInfo()).getCodeSigningFingerprint().orElse("NOSIGNATURE");
+        if (loadingStateValid) {
+            IModInfo info = mf.getModInfos().get(0);
+            displayName = info.getDisplayName();
+            modId = info.getModId();
+            version = info.getVersion().toString();
+            state = ModList.get().getModContainerById(modId).map(ModContainer::getCurrentState).map(Object::toString).orElse("NONE");
+        }
+        return String.format(Locale.ENGLISH, "%-50.50s|%-30.30s|%-30.30s|%-20.20s|%-10.10s|Manifest: %s",
+                mf.getFileName(), displayName, modId, version, state, signature);
     }
 
     public static ModLoader get()
