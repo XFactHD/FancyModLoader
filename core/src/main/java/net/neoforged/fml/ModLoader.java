@@ -132,22 +132,25 @@ public class ModLoader
         List<IModFileInfo> fileInfos = loadingStateValid ? ModList.get().getModFiles() : loadingModList.getAllModFiles();
         return fileInfos.stream()
                 .map(IModFileInfo::getFile)
-                .map(this::fileToLine)
+                .map(ModLoader::fileToLine)
                 .collect(Collectors.joining("\n\t\t", "\n\t\t", ""));
     }
 
-    private String fileToLine(IModFile mf) {
+    private static String fileToLine(IModFile mf) {
         String displayName = "UNKNOWN";
         String modId = "UNKNOWN";
         String version = "NONE";
         String state = "ERROR";
-        String signature = ((ModFileInfo) mf.getModFileInfo()).getCodeSigningFingerprint().orElse("NOSIGNATURE");
-        if (loadingStateValid) {
+        String signature = "UNKNOWN";
+        if (!mf.getModInfos().isEmpty()) {
             IModInfo info = mf.getModInfos().get(0);
             displayName = info.getDisplayName();
             modId = info.getModId();
             version = info.getVersion().toString();
             state = ModList.get().getModContainerById(modId).map(ModContainer::getCurrentState).map(Object::toString).orElse("NONE");
+        }
+        if (mf.getModFileInfo() instanceof ModFileInfo info) {
+            signature = info.getCodeSigningFingerprint().orElse("NOSIGNATURE");
         }
         return String.format(Locale.ENGLISH, "%-50.50s|%-30.30s|%-30.30s|%-20.20s|%-10.10s|Manifest: %s",
                 mf.getFileName(), displayName, modId, version, state, signature);
