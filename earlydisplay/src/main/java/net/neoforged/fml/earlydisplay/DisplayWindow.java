@@ -463,7 +463,7 @@ public class DisplayWindow implements ImmediateWindowProvider {
 
     private void setMacosApplicationIcon() {
         try (var icon = theme.windowIcon().toNativeBuffer(getThemePath())) {
-            MacosApplicationIcon.set(icon.toByteArray());
+            MacosUtil.setApplicationIcon(icon.toByteArray());
         } catch (Exception | LinkageError e) {
             LOGGER.warn("Failed to set macOS application icon", e);
         }
