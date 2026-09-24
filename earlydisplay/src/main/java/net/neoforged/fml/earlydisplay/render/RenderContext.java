@@ -9,14 +9,12 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import net.neoforged.fml.earlydisplay.render.backend.ELSDrawCollector;
-import net.neoforged.fml.earlydisplay.render.backend.ELSRenderBackend;
 import net.neoforged.fml.earlydisplay.render.backend.ELSRenderPipeline;
 import net.neoforged.fml.earlydisplay.theme.Theme;
 import net.neoforged.fml.earlydisplay.theme.ThemeColor;
 import net.neoforged.fml.earlydisplay.util.Bounds;
 
 public record RenderContext(
-        ELSRenderBackend backend,
         ELSDrawCollector collector,
         SimpleBufferBuilder sharedBuffer,
         MaterializedTheme theme,
@@ -74,7 +72,7 @@ public record RenderContext(
                 v0,
                 v1);
 
-        SimpleBufferBuilder.Result result = this.sharedBuffer.finishAndUpload(this.backend);
+        SimpleBufferBuilder.Result result = this.sharedBuffer.finish();
         this.collector.submitDraw(pipeline, texture.texture(), result);
     }
 
@@ -88,7 +86,7 @@ public record RenderContext(
         ELSRenderPipeline pipeline = this.pipelines.get(Theme.SHADER_FONT);
         sharedBuffer.begin(pipeline.vertexFormat(), pipeline.vertexMode());
         font.generateVerticesForTexts(x, y, sharedBuffer, texts);
-        SimpleBufferBuilder.Result result = this.sharedBuffer.finishAndUpload(this.backend);
+        SimpleBufferBuilder.Result result = this.sharedBuffer.finish();
         this.collector.submitDraw(pipeline, font.texture(), result);
     }
 
@@ -165,7 +163,7 @@ public record RenderContext(
         sharedBuffer.pos(x + width, y + height).tex(0, 0).colour(colorBottom).endVertex();
         sharedBuffer.pos(x + width, y).tex(0, 0).colour(colorTop).endVertex();
 
-        SimpleBufferBuilder.Result result = this.sharedBuffer.finishAndUpload(this.backend);
+        SimpleBufferBuilder.Result result = this.sharedBuffer.finish();
         this.collector.submitDraw(pipeline, null, result);
     }
 

@@ -78,15 +78,15 @@ final class GlRenderPass implements ELSRenderPass {
     }
 
     @Override
-    public void draw(int vertexCount) {
+    public void draw(int firstVertex, int vertexCount) {
         setupPipelineState(false);
-        GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, vertexCount);
+        GL33C.glDrawArrays(GL33C.GL_TRIANGLES, firstVertex, vertexCount);
     }
 
     @Override
-    public void drawIndexed(int indexCount) {
+    public void drawIndexed(int firstVertex, int indexCount) {
         setupPipelineState(true);
-        GL33C.glDrawElements(GL33C.GL_TRIANGLES, indexCount, GL33C.GL_UNSIGNED_INT, 0);
+        GL33C.glDrawElementsBaseVertex(GL33C.GL_TRIANGLES, indexCount, GL33C.GL_UNSIGNED_INT, 0, firstVertex);
     }
 
     private void setupPipelineState(boolean indexed) {

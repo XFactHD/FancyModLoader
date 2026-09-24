@@ -7,6 +7,8 @@ package net.neoforged.fml.earlydisplay.render.backend.opengl;
 
 import java.util.EnumMap;
 import java.util.Map;
+
+import net.neoforged.fml.earlydisplay.render.backend.TextureFormat;
 import net.neoforged.fml.earlydisplay.render.backend.VertexFormat;
 import org.lwjgl.opengl.GL33C;
 
@@ -31,15 +33,12 @@ final class VaoCache implements AutoCloseable {
         int stride = format.stride;
         long offset = vertexBuffer.offset();
         for (int i = 0; i < format.elementCount(); i++) {
-            VertexFormat.Element element = format.element(i);
             if (enable) {
                 GL33C.glEnableVertexAttribArray(i);
             }
-            switch (element) {
-                case POS, TEX -> GL33C.glVertexAttribPointer(i, element.count, GL33C.GL_FLOAT, false, stride, offset);
-                case COLOR -> GL33C.glVertexAttribPointer(i, element.count, GL33C.GL_UNSIGNED_BYTE, true, stride, offset);
-            }
-            offset += element.width;
+            TextureFormat elementFormat = format.element(i).format;
+            GL33C.glVertexAttribPointer(i, elementFormat.getComponents(), GlConst.toGlType(elementFormat), elementFormat.getComponentType().isNormalized(), stride, offset);
+            offset += elementFormat.getSize();
         }
 
         return vao;

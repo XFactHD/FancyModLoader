@@ -33,7 +33,7 @@ public record Texture(ELSTexture texture, TextureScaling scaling, @Nullable Anim
     }
 
     /**
-     * Loads a resource into an OpenGL texture.
+     * Loads a resource into a GPU texture.
      */
     public static Texture create(ELSRenderBackend backend, ThemeTexture themeTexture, @Nullable Path externalThemeDirectory) {
         try (var image = themeTexture.resource().loadAsImage(externalThemeDirectory)) {
@@ -53,7 +53,7 @@ public record Texture(ELSTexture texture, TextureScaling scaling, @Nullable Anim
             String debugName,
             TextureScaling scaling,
             @Nullable AnimationMetadata animation) {
-        ELSTexture texture = backend.createTexture(debugName, image.width(), image.height(), TextureFormat.RGBA, scaling.linearScaling());
+        ELSTexture texture = backend.createTexture(debugName, image.width(), image.height(), TextureFormat.RGBA8_UNORM, scaling.linearScaling());
         backend.writeToTexture(texture, image.imageData());
         return new Texture(texture, scaling, animation);
     }

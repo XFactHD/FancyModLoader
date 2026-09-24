@@ -42,12 +42,12 @@ public class SimpleBufferBuilder implements Closeable {
     private long bufferAddr;   // Pointer to the backing buffer.
     private ByteBuffer buffer; // ByteBuffer view of the backing buffer.
     private ELSBuffer gpuBuffer; // GPU-side buffer
-    private long gpuBufferOffset;
+    private int index;         // The current index into the buffer we are writing to.
     private VertexFormat format;     // The current format we are buffering.
     private VertexFormat.Mode mode;         // The current mode we are buffering.
     private boolean building;  // If we are building the buffer.
+    private int startOffset;   // Offset into the buffer of the active batch
     private int elementIndex;  // The current element index we are buffering. if elementIndex == format.types.length, we expect 'endVertex'
-    private int index;         // The current index into the buffer we are writing to.
     private int vertices;      // The number of complete vertices we have buffered.
 
     /**
@@ -83,6 +83,7 @@ public class SimpleBufferBuilder implements Closeable {
         this.format = format;
         this.mode = mode;
         building = true;
+        startOffset = index;
         elementIndex = 0;
         ensureSpace(format.stride);
         // Rewind ready for new data.
@@ -114,7 +115,7 @@ public class SimpleBufferBuilder implements Closeable {
         buffer.putFloat(index + 4, y);
 
         // Increment index for the number of bytes we wrote and increment the element index.
-        index += format.element(elementIndex).width;
+        index += format.element(elementIndex).format.getSize();
         elementIndex++;
         return this;
     }
@@ -142,7 +143,7 @@ public class SimpleBufferBuilder implements Closeable {
         buffer.putFloat(index + 4, v);
 
         // Increment index for the number of bytes we wrote and increment the element index.
-        index += format.element(elementIndex).width;
+        index += format.element(elementIndex).format.getSize();
         elementIndex++;
         return this;
     }
@@ -198,7 +199,7 @@ public class SimpleBufferBuilder implements Closeable {
         buffer.put(index + 3, a);
 
         // Increment index for the number of bytes we wrote and increment the element index.
-        index += format.element(elementIndex).width;
+        index += format.element(elementIndex).format.getSize();
         elementIndex++;
         return this;
     }
@@ -250,7 +251,7 @@ public class SimpleBufferBuilder implements Closeable {
      * @return The number of indexes that were uploaded.
      */
     @Nullable
-    public Result finishAndUpload(ELSRenderBackend backend) {
+    public Result finish() {
         if (!building) {
             throw new IllegalStateException("Not building.");
         }
@@ -269,45 +270,44 @@ public class SimpleBufferBuilder implements Closeable {
                 throw new IllegalStateException("Does not contain vertices aligned to " + mode); // You did not put in enough vertices to cleanly slice the data into TRIANGLES/QUADS
             }
 
-            // Reset position to 0, limit the buffer to our index.
-            buffer.position(0);
-            buffer.limit(index);
-
-            // Upload the raw vertex data in dynamic mode.
-            long bufferSize = this.gpuBufferOffset + this.index;
-            if (this.gpuBuffer == null || this.gpuBuffer.size() < bufferSize) {
-                // expand buffer, it's not big enough
-                long newVBOSize = Math.max(1024, this.gpuBuffer != null ? this.gpuBuffer.size() : 0);
-                while (newVBOSize < bufferSize) {
-                    newVBOSize *= 2;
-                }
-                ELSBuffer oldBuffer = this.gpuBuffer;
-                this.gpuBuffer = backend.createBuffer(this.label, BUFFER_USAGE, newVBOSize);
-                if (oldBuffer != null) {
-                    backend.copyBufferToBuffer(oldBuffer.slice(), this.gpuBuffer.slice(0, oldBuffer.size()));
-                    oldBuffer.close();
-                }
-            }
-            backend.writeToBuffer(this.gpuBuffer.slice(this.gpuBufferOffset, this.index), this.buffer);
-            long resultOffset = this.gpuBufferOffset;
-            this.gpuBufferOffset += this.index;
-
             // The number of indices for triangles is equal to our vertex count, as that is
             // what we operate in. However, for Quads, we have exactly vertices + vertices / 2
             // vertices once we convert the quads to triangles.
             int indices = mode == VertexFormat.Mode.TRIANGLES ? vertices : vertices + vertices / 2;
+            int firstVertex = this.startOffset / this.format.stride;
 
-            return new Result(this.format, resultOffset, this.vertices, indices, this.mode == VertexFormat.Mode.QUADS);
+            return new Result(this.format, firstVertex, this.vertices, indices, this.mode == VertexFormat.Mode.QUADS);
         } finally {
             // Reset builder state for next begin call.
             building = false;
+            this.startOffset = 0;
             vertices = 0;
-            index = 0;
         }
     }
 
+    public void upload(ELSRenderBackend backend) {
+        // Reset position to 0, limit the buffer to our index.
+        buffer.position(0);
+        buffer.limit(index);
+
+        // Upload the raw vertex data in dynamic mode.
+        if (this.gpuBuffer == null || this.gpuBuffer.size() < this.index) {
+            // expand buffer, it's not big enough
+            long newVBOSize = Math.max(1024, this.gpuBuffer != null ? this.gpuBuffer.size() : 0);
+            while (newVBOSize < this.index) {
+                newVBOSize *= 2;
+            }
+            ELSBuffer oldBuffer = this.gpuBuffer;
+            this.gpuBuffer = backend.createBuffer(this.label, BUFFER_USAGE, newVBOSize);
+            if (oldBuffer != null) {
+                oldBuffer.close();
+            }
+        }
+        backend.writeToBuffer(this.gpuBuffer.slice(0, this.index), this.buffer);
+    }
+
     public void endFrame() {
-        this.gpuBufferOffset = 0L;
+        this.index = 0;
     }
 
     public ELSBuffer getGpuBuffer() {
@@ -323,5 +323,5 @@ public class SimpleBufferBuilder implements Closeable {
         bufferAddr = MemoryUtil.NULL;
     }
 
-    public record Result(VertexFormat format, long vertexOffset, int vertexCount, int indexCount, boolean indexed) {}
+    public record Result(VertexFormat format, int firstVertex, int vertexCount, int indexCount, boolean indexed) {}
 }

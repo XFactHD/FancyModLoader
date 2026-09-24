@@ -121,7 +121,7 @@ public class SimpleFont implements AutoCloseable {
             this.descent = (int) Math.floor(descent[0]);
             int texwidth = 256;
             int texheight = 128;
-            this.texture = backend.createTexture("font texture " + resource, texwidth, texheight, TextureFormat.RED, false);
+            this.texture = backend.createTexture("font texture " + resource, texwidth, texheight, TextureFormat.RED8_UNORM, false);
             try (var packedchars = STBTTPackedchar.malloc(ASCII_GLYPH_COUNT)) {
                 try (STBTTPackRange.Buffer packRanges = STBTTPackRange.malloc(1)) {
                     var bitmap = BufferUtils.createByteBuffer(texwidth * texheight);

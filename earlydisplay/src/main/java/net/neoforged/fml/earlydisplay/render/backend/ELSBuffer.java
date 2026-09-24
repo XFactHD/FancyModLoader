@@ -20,9 +20,6 @@ public interface ELSBuffer extends AutoCloseable {
     void close();
 
     enum Usage {
-        MAP_READ,
-        MAP_WRITE,
-        HINT_CLIENT_STORAGE,
         COPY_DST,
         COPY_SRC,
         VERTEX,

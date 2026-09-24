@@ -62,7 +62,7 @@ final class ErrorDisplayWindow extends AbstractEarlyScreen {
     private static final int LIST_ENTRY_X = 30;
     private static final int LIST_CONTENT_WIDTH = DISPLAY_WIDTH - (LIST_ENTRY_X * 2);
     private static final int SCROLL_SPEED = 10;
-    private static final ThemeColor CLEAR_COLOR = ThemeColor.ofArgb(0xFF000000);
+    private static final ThemeColor OPAQUE_BLACK = ThemeColor.ofArgb(0xFF000000);
 
     private final SimpleFont font;
     private final int errorLineHeight;
@@ -88,6 +88,7 @@ final class ErrorDisplayWindow extends AbstractEarlyScreen {
             @Nullable Path logFile,
             @Nullable Path crashReportFile) {
         super("FML Error Screen", () -> backend, Theme.createDefaultTheme(), null, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+        backend.acquireContextOwnership(false); // We don't release the ownership anymore because we're now the only thing running
         SimpleFont mcFont = FontLoader.loadVanillaFont(backend, assetsDir, assetIndex);
         this.font = mcFont != null ? mcFont : theme.getFont(Theme.FONT_DEFAULT);
         this.errorLineHeight = font.lineSpacing() - 5;
@@ -156,7 +157,7 @@ final class ErrorDisplayWindow extends AbstractEarlyScreen {
     }
 
     void render() {
-        this.renderToFramebuffer(CLEAR_COLOR);
+        this.renderToFramebuffer(OPAQUE_BLACK);
     }
 
     @Override

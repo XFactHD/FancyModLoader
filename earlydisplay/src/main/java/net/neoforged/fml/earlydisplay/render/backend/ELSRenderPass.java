@@ -24,9 +24,9 @@ public interface ELSRenderPass extends AutoCloseable {
 
     void bindIndexBuffer(@Nullable ELSBuffer buffer);
 
-    void draw(int vertexCount);
+    void draw(int firstVertex, int vertexCount);
 
-    void drawIndexed(int indexCount);
+    void drawIndexed(int firstVertex, int indexCount);
 
     @Override
     void close();

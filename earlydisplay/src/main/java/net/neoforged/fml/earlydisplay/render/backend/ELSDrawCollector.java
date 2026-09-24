@@ -76,17 +76,25 @@ public final class ELSDrawCollector {
             this.backend.writeToBuffer(this.backend.screenSizeUbo.slice(), uboData);
         }
 
+        ELSRenderPipeline lastPipeline = null;
+        ELSTexture lastTexture = null;
         try (ELSRenderPass renderPass = this.backend.createRenderPass(label, target, clearColor)) {
             renderPass.setViewport(this.viewportX, this.viewportY, this.viewportWidth, this.viewportHeight);
             renderPass.bindUniform(ElementShader.UNIFORM_SCREEN_SIZE, this.backend.screenSizeUbo);
+            renderPass.bindVertexBuffer(vertexBuffer.slice());
+            renderPass.bindIndexBuffer(indexBuffer);
 
             for (Draw draw : this.draws) {
                 SimpleBufferBuilder.Result result = draw.bufferResult;
 
-                renderPass.bindPipeline(draw.pipeline);
-                renderPass.bindVertexBuffer(vertexBuffer.slice(result.vertexOffset(), result.vertexCount() * (long) result.format().stride));
-                renderPass.bindIndexBuffer(result.indexed() ? indexBuffer : null);
-                renderPass.bindTexture(ElementShader.UNIFORM_SAMPLER0, draw.texture);
+                if (draw.pipeline != lastPipeline) {
+                    renderPass.bindPipeline(draw.pipeline);
+                    lastPipeline = draw.pipeline;
+                }
+                if (draw.texture != lastTexture) {
+                    renderPass.bindTexture(ElementShader.UNIFORM_SAMPLER0, draw.texture);
+                    lastTexture = draw.texture;
+                }
 
                 if (draw.scissorEnabled) {
                     renderPass.enableScissor(draw.scissorX, draw.scissorY, draw.scissorWidth, draw.scissorHeight);
@@ -94,10 +102,11 @@ public final class ELSDrawCollector {
                     renderPass.disableScissor();
                 }
 
+                int firstVertex = result.firstVertex();
                 if (result.indexed()) {
-                    renderPass.drawIndexed(result.indexCount());
+                    renderPass.drawIndexed(firstVertex, result.indexCount());
                 } else {
-                    renderPass.draw(result.vertexCount());
+                    renderPass.draw(firstVertex, result.vertexCount());
                 }
             }
         }

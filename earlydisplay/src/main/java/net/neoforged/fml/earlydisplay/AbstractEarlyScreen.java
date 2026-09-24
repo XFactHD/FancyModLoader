@@ -49,6 +49,7 @@ public abstract class AbstractEarlyScreen {
         this.backend.preloadPipelines(this.pipelines.values());
         this.framebuffer = new EarlyFramebuffer(this.backend, screenWidth, screenHeight);
         this.bufferBuilder = new SimpleBufferBuilder("shared_error", 8192);
+        this.backend.releaseContextOwnership();
     }
 
     private static Map<String, ELSRenderPipeline> buildPipelines(Map<String, ElementShader> shaders) {
@@ -90,8 +91,9 @@ public abstract class AbstractEarlyScreen {
             this.scale = (float) this.framebuffer.width() / this.screenWidth;
         }
 
-        RenderContext context = new RenderContext(this.backend, collector, this.bufferBuilder, this.theme, this.pipelines, this.screenWidth, this.screenHeight, this.offsetX, this.offsetY, this.scale, this.framebuffer.height(), this.animationFrame);
+        RenderContext context = new RenderContext(collector, this.bufferBuilder, this.theme, this.pipelines, this.screenWidth, this.screenHeight, this.offsetX, this.offsetY, this.scale, this.framebuffer.height(), this.animationFrame);
         renderToFramebuffer(context);
+        this.bufferBuilder.upload(backend);
         collector.execute(this.name, this.framebuffer.texture(), clearColor, this.bufferBuilder.getGpuBuffer(), this.screenWidth, this.screenHeight);
 
         this.backend.presentTexture(this.framebuffer.texture(), clearColor, this.framebuffer.width(), this.framebuffer.height());

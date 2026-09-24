@@ -8,6 +8,8 @@ layout(std140) uniform screenSize {
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 uv;
 layout(location = 2) in vec4 color;
+// Despite using GL_ARB_separate_shader_objects, the input variables in the fragment shaders must have names matching
+// these output variables, otherwise MacOS' broken OpenGL driver crashes
 layout(location = 0) out vec2 fTex;
 layout(location = 1) out vec4 fColour;
 

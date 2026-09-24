@@ -19,7 +19,7 @@ public final class EarlyFramebuffer {
         this.backend = backend;
         this.width = width;
         this.height = height;
-        this.texture = backend.createTexture("EarlyDisplay Framebuffer", width, height, TextureFormat.RGBA, false);
+        this.texture = backend.createTexture("EarlyDisplay Framebuffer", width, height, TextureFormat.RGBA8_UNORM, false);
     }
 
     public ELSTexture texture() {
@@ -29,7 +29,7 @@ public final class EarlyFramebuffer {
     public void resize(int width, int height) {
         if (this.width != width || this.height != height) {
             this.texture.close();
-            this.texture = this.backend.createTexture("EarlyDisplay Framebuffer", width, height, TextureFormat.RGBA, false);
+            this.texture = this.backend.createTexture("EarlyDisplay Framebuffer", width, height, TextureFormat.RGBA8_UNORM, false);
             this.width = width;
             this.height = height;
         }

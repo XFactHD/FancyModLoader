@@ -8,9 +8,6 @@ package net.neoforged.fml.earlydisplay.render.backend;
 import java.util.Arrays;
 
 public enum VertexFormat {
-    POS(Element.POS),
-    POS_TEX(Element.POS, Element.TEX),
-    POS_COLOR(Element.POS, Element.COLOR),
     POS_TEX_COLOR(Element.POS, Element.TEX, Element.COLOR);
 
     private final Element[] elements;
@@ -18,7 +15,7 @@ public enum VertexFormat {
 
     VertexFormat(Element... elements) {
         this.elements = elements;
-        this.stride = Arrays.stream(elements).mapToInt(e -> e.width).sum();
+        this.stride = Arrays.stream(elements).mapToInt(e -> e.format.getSize()).sum();
     }
 
     public Element element(int idx) {
@@ -39,18 +36,16 @@ public enum VertexFormat {
     }
 
     public enum Element {
-        POS("position", 2, 2 * 4),
-        TEX("uv", 2, 2 * 4),
-        COLOR("color", 4, 4);
+        POS("position", TextureFormat.RG32_FLOAT),
+        TEX("uv", TextureFormat.RG32_FLOAT),
+        COLOR("color", TextureFormat.RGBA8_UNORM);
 
         public final String name;
-        public final int count;
-        public final int width;
+        public final TextureFormat format;
 
-        Element(String name, int count, int width) {
+        Element(String name, TextureFormat format) {
             this.name = name;
-            this.count = count;
-            this.width = width;
+            this.format = format;
         }
     }
 

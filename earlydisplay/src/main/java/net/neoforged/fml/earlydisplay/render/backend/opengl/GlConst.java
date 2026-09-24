@@ -13,15 +13,24 @@ import org.lwjgl.opengl.GL33C;
 final class GlConst {
     static int toGlInternalId(TextureFormat format) {
         return switch (format) {
-            case RGBA -> GL33C.GL_RGBA8;
-            case RED -> GL33C.GL_R8;
+            case RGBA8_UNORM -> GL33C.GL_RGBA8;
+            case RED8_UNORM -> GL33C.GL_R8;
+            case RG32_FLOAT -> GL33C.GL_RG32F;
         };
     }
 
     static int toGlExternalId(TextureFormat format) {
         return switch (format) {
-            case RGBA -> GL33C.GL_RGBA;
-            case RED -> GL33C.GL_RED;
+            case RGBA8_UNORM -> GL33C.GL_RGBA;
+            case RED8_UNORM -> GL33C.GL_RED;
+            case RG32_FLOAT -> GL33C.GL_RG;
+        };
+    }
+
+    static int toGlType(TextureFormat format) {
+        return switch (format.getComponentType()) {
+            case UNORM_8 -> GL33C.GL_UNSIGNED_BYTE;
+            case FLOAT_32 -> GL33C.GL_FLOAT;
         };
     }
 
@@ -36,17 +45,6 @@ final class GlConst {
             return GL33C.GL_UNIFORM_BUFFER;
         }
         return GL33C.GL_COPY_WRITE_BUFFER;
-    }
-
-    static int bufferUsageToGlEnum(Set<ELSBuffer.Usage> usage) {
-        boolean clientStorage = usage.contains(ELSBuffer.Usage.HINT_CLIENT_STORAGE);
-        if (usage.contains(ELSBuffer.Usage.MAP_WRITE)) {
-            return clientStorage ? GL33C.GL_STREAM_DRAW : GL33C.GL_STATIC_DRAW;
-        }
-        if (usage.contains(ELSBuffer.Usage.MAP_READ)) {
-            return clientStorage ? GL33C.GL_STREAM_READ : GL33C.GL_STATIC_READ;
-        }
-        return GL33C.GL_STATIC_DRAW;
     }
 
     private GlConst() {}

@@ -43,6 +43,7 @@ import net.neoforged.fml.loading.ProgramArgs;
 import net.neoforged.fml.loading.progress.ProgressMeter;
 import net.neoforged.fml.loading.progress.StartupNotificationManager;
 import net.neoforged.neoforgespi.earlywindow.ImmediateWindowProvider;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.lwjgl.sdl.SDLError;
@@ -397,10 +398,6 @@ public class DisplayWindow implements ImmediateWindowProvider {
 
         setWindowIcon();
 
-        // Show the window
-        //if (!SDLVideo.SDL_ShowWindow(this.window)) {
-        //    LOGGER.warn("Failed to show window: {}", SDLError.SDL_GetError());
-        //}
         if (this.maximized) {
             SDLVideo.SDL_MaximizeWindow(this.window);
         }
@@ -477,7 +474,7 @@ public class DisplayWindow implements ImmediateWindowProvider {
             SDLInit.SDL_QuitSubSystem(SDLInit.SDL_INIT_VIDEO);
         }
 
-        // Perform renderer re-init on the calling thread because the incoming B3D backend cannot move the context to another thread
+        // Perform renderer re-init on the calling thread because the incoming RenderPearl backend cannot move the context to another thread
         this.rendererFuture = CompletableFuture.completedFuture(this.setupRenderer(() -> (ELSRenderBackend) backend.get(), false));
         try {
             this.repaintTick = this.rendererFuture.get(30, TimeUnit.SECONDS)::renderToScreen;
@@ -492,7 +489,8 @@ public class DisplayWindow implements ImmediateWindowProvider {
         return windowState;
     }
 
-    private ELSRenderBackend shutdownAutomaticRenderer(boolean destroyBackend) {
+    @Contract("true->null;false->!null")
+    private @Nullable ELSRenderBackend shutdownAutomaticRenderer(boolean destroyBackend) {
         // While this should have happened already, wait for it now to continue
         LoadingScreenRenderer renderer;
         try {
@@ -520,7 +518,7 @@ public class DisplayWindow implements ImmediateWindowProvider {
 
         completeProgress();
 
-        return renderer.getBackend();
+        return destroyBackend ? null : renderer.getBackend();
     }
 
     private void pollEvents() {

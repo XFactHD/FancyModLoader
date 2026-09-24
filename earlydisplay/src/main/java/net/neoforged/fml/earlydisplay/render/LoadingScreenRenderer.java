@@ -64,6 +64,7 @@ public final class LoadingScreenRenderer extends AbstractEarlyScreen {
         super("FML Early Loading Screen", backend, theme, externalThemeDirectory, LAYOUT_WIDTH, LAYOUT_HEIGHT);
         this.minecraftVersion = minecraftVersion;
         this.neoForgeVersion = neoForgeVersion;
+        this.backend.acquireContextOwnership(false);
         this.elements = loadElements();
         this.backend.releaseContextOwnership();
 

@@ -27,16 +27,11 @@ public interface EarlyLoadingScreenController extends Closeable {
     /// Hands over control of the early loading screen to Minecraft, destroys the ELS' own window
     /// and restarts its rendering with the provided backend on the window spawned by vanilla.
     ///
-    /// This method can only be called once and once this method is called, any off-thread
-    /// interaction with the window seizes.
-    ///
     /// @return the state of the ELS window to be applied to the vanilla window
     WindowState handOverToMinecraft(Supplier<Object> renderBackend);
 
-    /**
-     * After calling {@linkplain #handOverToMinecraft(Supplier) taking over} the main window, the game may still want to
-     * periodically ask the loading screen to update itself independently. It will call this method to do so.
-     */
+    /// After calling [#handOverToMinecraft(Supplier)] to take control of the ELS, the game may still want to
+    /// periodically ask the loading screen to update itself independently. It will call this method to do so.
     void periodicTick();
 
     /**

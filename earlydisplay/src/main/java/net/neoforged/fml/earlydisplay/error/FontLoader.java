@@ -202,7 +202,7 @@ final class FontLoader {
             }
         }
 
-        ELSTexture texture = backend.createTexture("unifont_texture", texWidth, texHeight, TextureFormat.RED, false);
+        ELSTexture texture = backend.createTexture("unifont_texture", texWidth, texHeight, TextureFormat.RED8_UNORM, false);
         backend.writeToTexture(texture, bitmap);
 
         // SimpleFont relies on at least a space character being present

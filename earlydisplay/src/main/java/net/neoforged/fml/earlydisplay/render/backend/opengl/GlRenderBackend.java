@@ -86,7 +86,7 @@ final class GlRenderBackend extends ELSRenderBackend {
         int bindTarget = GlConst.getBufferBindTarget(usage);
         GL33C.glBindBuffer(bindTarget, bufferId);
         GlDebug.labelBuffer(bufferId, label);
-        GL33C.glBufferData(bindTarget, size, GlConst.bufferUsageToGlEnum(usage));
+        GL33C.glBufferData(bindTarget, size, GL33C.GL_STATIC_DRAW);
         GL33C.glBindBuffer(bindTarget, 0);
         return new GlBuffer(bufferId, usage, size);
     }
@@ -98,7 +98,7 @@ final class GlRenderBackend extends ELSRenderBackend {
         int bindTarget = GlConst.getBufferBindTarget(usage);
         GL33C.glBindBuffer(bindTarget, bufferId);
         GlDebug.labelBuffer(bufferId, label);
-        GL33C.glBufferData(bindTarget, data, GlConst.bufferUsageToGlEnum(usage));
+        GL33C.glBufferData(bindTarget, data, GL33C.GL_STATIC_DRAW);
         GL33C.glBindBuffer(bindTarget, 0);
         return new GlBuffer(bufferId, usage, size);
     }
@@ -151,6 +151,10 @@ final class GlRenderBackend extends ELSRenderBackend {
 
     @Override
     public void presentTexture(ELSTexture texture, ThemeColor backgroundColor, int windowFBWidth, int windowFBHeight) {
+        if ((SDLVideo.SDL_GetWindowFlags(this.windowHandle) & SDLVideo.SDL_WINDOW_MINIMIZED) != 0) {
+            return;
+        }
+
         int width = texture.width();
         int height = texture.height();
         GlState.viewport(0, 0, width, height);
