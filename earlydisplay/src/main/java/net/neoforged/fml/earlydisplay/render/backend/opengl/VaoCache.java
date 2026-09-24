@@ -7,7 +7,6 @@ package net.neoforged.fml.earlydisplay.render.backend.opengl;
 
 import java.util.EnumMap;
 import java.util.Map;
-
 import net.neoforged.fml.earlydisplay.render.backend.TextureFormat;
 import net.neoforged.fml.earlydisplay.render.backend.VertexFormat;
 import org.lwjgl.opengl.GL33C;
